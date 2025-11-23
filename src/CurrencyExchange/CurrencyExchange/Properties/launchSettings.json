@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "CurrencyExchange (Package)": {
+      "commandName": "MsixPackage",
+      "doNotLaunchApp": true
+    },
+    "CurrencyExchange (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
