@@ -15,6 +15,7 @@ internal sealed partial class FallbackCurrencyExchangeItem() : FallbackCommandIt
         {
             Title = string.Empty;
             Subtitle = string.Empty;
+            Command = null;
             return;
         }
 
@@ -23,11 +24,13 @@ internal sealed partial class FallbackCurrencyExchangeItem() : FallbackCommandIt
         {
             Title = string.Empty;
             Subtitle = string.Empty;
+            Command = null;
             return;
         }
 
         Title = $"{amount * 2800} USDT";
         Subtitle = $"{amount} {fromCurrency}";
+        Command = new CurrencyChartPage();
     }
 
     private static ReadOnlySpan<char> RemoveCommas(ReadOnlySpan<char> source)

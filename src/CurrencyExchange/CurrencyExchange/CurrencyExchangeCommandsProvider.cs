@@ -21,7 +21,7 @@ public partial class CurrencyExchangeCommandsProvider : CommandProvider
 
     public override ICommandItem[] TopLevelCommands()
     {
-        return Array.Empty<ICommandItem>();
+        return [new CommandItem(new CurrencyChartPage()) {  Title = "Test"}];
     }
 
     public override IFallbackCommandItem[] FallbackCommands() => fallbacks;
