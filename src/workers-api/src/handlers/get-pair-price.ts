@@ -17,7 +17,7 @@ export function getPairPriceHandler(getPrices: GetPrice[]) {
 		for (const getPrice of getPrices) {
 			const result = await getPrice(pair);
 			if (!result.ok) {
-				if (result.error === 'RATE_LIMIT') continue;
+				if (result.error === 'RATE_LIMIT' || result.error === 'FORBIDDEN') continue;
 				const body = { error: result.error };
 				switch (result.error) {
 					case 'NOT_FOUND':
@@ -51,23 +51,29 @@ export function extractPair(path: string): Pair {
 }
 
 interface GetPrice {
-	(pair: Pair): Promise<Attempt<string, 'NOT_FOUND' | 'RATE_LIMIT' | 'UNKNOWN'>>;
+	(pair: Pair): Promise<Attempt<string, 'NOT_FOUND' | 'FORBIDDEN' | 'RATE_LIMIT' | 'UNKNOWN'>>;
 }
 
 export function getPriceBinance(fetch: typeof globalThis.fetch): GetPrice {
 	return async (pair) => {
-		const response = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${pair.replace(/-/g, '')}`, {
+		const response = await fetch(`https://api-gcp.binance.com/api/v3/ticker/price?symbol=${pair.replace(/-/g, '')}`, {
 			method: 'GET',
 		});
-		if (response.status === 400) {
-			const { code } = await response.json<{ code: number }>();
-			if (code === -1121) {
-				return attempt.fail('NOT_FOUND');
+		if (!response.ok) {
+			switch (response.status) {
+				case 400:
+					const { code } = await response.json<{ code: number }>();
+					if (code === -1121) {
+						return attempt.fail('NOT_FOUND');
+					}
+					return attempt.fail('UNKNOWN');
+				case 403:
+					return attempt.fail('FORBIDDEN');
+				case 429:
+					return attempt.fail('RATE_LIMIT');
+				default:
+					return attempt.fail('UNKNOWN');
 			}
-			return attempt.fail('UNKNOWN');
-		}
-		if (response.status === 429) {
-			return attempt.fail('RATE_LIMIT');
 		}
 		return attempt.ok(await response.json<{ price: string }>().then((a) => a.price));
 	};
